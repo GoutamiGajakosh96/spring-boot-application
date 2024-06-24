@@ -29,7 +29,7 @@ jobs:
       run: docker build -t ${{ secrets.DOCKER_USERNAME }}/sb-app-3:latest .
 
     - name: Publish image to docker hub
-      run: docker push ${{ secrets.DOCKER_USERNAME }}/sb-app-3
+      run: docker push ${{ secrets.DOCKER_USERNAME }}/sb-app-3:latest
 
   deploy:
     needs: build
@@ -37,6 +37,6 @@ jobs:
 
     steps:
       - name: Pull image from docker hub    
-        run:  docker pull ${{ secrets.DOCKER_USERNAME }}/sb-app-3
+        run:  docker pull ${{ secrets.DOCKER_USERNAME }}/sb-app-3:latest
       - name: Run docker container
         run:  docker run -d --name cont-1 -p 8080:8080 ${{ secrets.DOCKER_USERNAME }}/sb-app-3:latest
