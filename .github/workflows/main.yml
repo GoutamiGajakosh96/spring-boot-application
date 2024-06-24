@@ -37,6 +37,6 @@ jobs:
 
     steps:
       - name: Pull image from docker hub    
-        run:  docker pull ${{ secrets.DOCKER_USERNAME }}/image-1:latest
+        run:  sudo docker pull ${{ secrets.DOCKER_USERNAME }}/image-1:latest
       - name: Run docker container
-        run:  docker run -d --name cont-1 -p 8080:8080 ${{ secrets.DOCKER_USERNAME }}/image-1:latest
+        run:  sudo docker run -d --name cont-1 -p 8080:8080 ${{ secrets.DOCKER_USERNAME }}/image-1:latest
