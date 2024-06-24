@@ -37,6 +37,6 @@ jobs:
 
     steps:
       - name: Pull image from docker hub    
-        run:  docker pull ${{ secrets.DOCKER_USERNAME }}/sb-app-3:latest
+        run:  docker pull ${{ secrets.DOCKER_USERNAME }}/sb-app-3
       - name: Run docker container
         run:  docker run -d --name cont-1 -p 8080:8080 ${{ secrets.DOCKER_USERNAME }}/sb-app-3:latest
