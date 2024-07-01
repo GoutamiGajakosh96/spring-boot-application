@@ -1,42 +1,73 @@
-name: Java CI with Maven
+name: Terraform
 
 on:
+  workflow_dispatch:
+    inputs:
+      terraform_action:
+        type: choice
+        description: select terraform action
+        options:
+        - apply
+        - destroy
+        required: true
   push:
     branches: [ "main" ]
+  
   pull_request:
     branches: [ "main" ]
 
 jobs:
-  build:
+   terraform:
+    name: 'Terraform'
+    env:
+      # AWS secrets
+      access_key = ${{ secrets.AWS_ACCESS_KEY_ID }}
+      secret_key = ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
     runs-on: ubuntu-latest
-     
+    environment: production
+
     steps:
-    - uses: actions/checkout@v4
-    - name: Set up JDK 11
-      uses: actions/setup-java@v3
+    # Checkout the repository to the GitHub Actions runner
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
+    - name: Terraform Init
+      uses: hashicorp/terraform-github-actions@master
       with:
-        java-version: '11'
-        distribution: 'temurin'
-        cache: maven
-    - name: Build with Maven
-      run: mvn -B package --file pom.xml
+        tf_actions_version: 0.14.3
+        tf_actions_subcommand: 'init'
+        tf_actions_working_dir: '.'
+        tf_actions_comment: true
+        args: '-var="instance_type=t2.medium"'
     
-    - name: Login to docker hub
-      run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+    - name: Terraform plan
+      uses: hashicorp/terraform-github-actions@master
+      with:
+        tf_actions_version: 0.14.3
+        tf_actions_subcommand: 'plan'
+        tf_actions_working_dir: '.'
+        tf_actions_comment: true
+        args: '-var="instance_type=t2.medium"'
+      
+    - name: Terraform apply
+      if: ${{ github.event.inputs.terraform_action == 'apply' }}
+      uses: hashicorp/terraform-github-actions@master
+      with:
+        tf_actions_version: 0.14.3
+        tf_actions_subcommand: ${{ github.event.inputs.terraform_action }}
+        tf_actions_working_dir: '.'
+        tf_actions_comment: true
+        args: '-auto-approve -var="instance_type=t2.medium"'
+    
+    - name: Terraform destroy
+      if: ${{ github.event.inputs.terraform_action == 'destroy' }}
+      uses: hashicorp/terraform-github-actions@master
+      with:
+        tf_actions_version: 0.14.3
+        tf_actions_subcommand: ${{ github.event.inputs.terraform_action }}
+        tf_actions_working_dir: '.'
+        tf_actions_comment: true
+        args: '-auto-approve -var="instance_type=t2.medium"'
 
-    - name: Build docker image
-      run: docker build -t ${{ secrets.DOCKER_USERNAME }}/image-1:latest .
-
-    - name: Publish image to docker hub
-      run: docker push ${{ secrets.DOCKER_USERNAME }}/image-1:latest
-
-  deploy:
-    needs: build
-    runs-on: [aws-ec2]
-
-    steps:
-      - name: Pull image from docker hub    
-        run:  sudo docker pull ${{ secrets.DOCKER_USERNAME }}/image-1:latest
-      - name: Run docker container
-        run:  sudo docker run -d --name cont-1 -p 8080:8080 ${{ secrets.DOCKER_USERNAME }}/image-1:latest
