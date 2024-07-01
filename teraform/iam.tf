@@ -1,5 +1,5 @@
-resource "aws_iam_role" "ecs_task_execution_role" {
-  name = "ecs_task_execution_role"
+resource "aws_iam_role" "ecs_task_execution_role_1" {
+  name = "ecs_task_execution_role_1"
 
   assume_role_policy = <<EOF
 {
@@ -19,6 +19,6 @@ EOF
 }
 
 resource "aws_iam_role_policy_attachment" "ecs_task_execution_role_policy_attachment" {
-  role       = aws_iam_role.ecs_task_execution_role.name
+  role       = aws_iam_role.ecs_task_execution_role_1.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
